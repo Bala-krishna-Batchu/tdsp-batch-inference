@@ -1,0 +1,31 @@
+# Mandatory parameters irrespective of deployment pattern
+TeamDetails:
+  TeamName: tdspds
+  PodName: tdspds
+
+# Chargeback tags.
+CostTags:
+  cost-layer: sagemaker-batch
+  cost-misc: NA
+  cost-project: mlops-framework
+  cost-team: tdspds
+  cost-email: pooja.kangokar@toyota.com
+  app-id: APM0004570
+  app-name: Toyota Data Science Platform
+  blueprint-sources: NA
+  created-by-email: pooja.kangokar@toyota.com
+  program-name:  mlops
+  cost-bu: DATA
+    
+Model:
+  ProjectName: model-registry
+  ModelName: customer-churn
+  ModelVersion: v4
+  ModelAlias: dev
+
+Schedule:
+  Enable: False
+  Cron: cron(45 * * 1 ? 2024)  #example expression
+
+ModelMonitoring:
+  Enable: true

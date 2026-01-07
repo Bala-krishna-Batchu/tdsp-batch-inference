@@ -1,0 +1,75 @@
+Inference:
+  JobName: churn-model-1
+  Entrypoint: inference
+  EnvironmentVariables:
+    - project: customer-churn
+  TransformInput:
+    DataSource:
+      S3DataSource:
+        S3DataType: S3Prefix
+        S3Uri: s3://tdsp-data-products-dev/tdspds/tdspds-mlops-sagemaker-batch-inference-sample/churn-project/data/input/test_data_v1.csv
+    ContentType: text/csv
+    SplitType: Line
+  TransformOutput:
+    S3OutputPath: s3://tdsp-data-products-dev/tdspds/tdspds-mlops-sagemaker-batch-inference-sample/churn-project/data/output
+  TransformResources:
+    InstanceType: ml.m5.large
+    InstanceCount: 1
+  MaxPayloadInMB: 1
+  BatchStrategy: SingleRecord
+  MaxConcurrentTransforms: 1
+  DataCaptureS3Uri: s3://tdsp-data-products-dev/tdspds/tdspds-mlops-sagemaker-batch-inference-sample/churn-project/data-capture
+
+Monitoring:
+  JobName: churn-model-batch-monitoring
+  DataQuality:
+    Name: churn-data-quality
+    Enable: True
+    InstanceType: ml.m4.xlarge
+    InstanceCount: 1
+    SkipCheck: True
+    FailOnViolation: False
+    RegisterNewBaseline: True
+    DatasetFormat: 'csv'
+    Headers: False
+    SuppliedBaselineStatistics: ""  # statistics and json files
+    SuppliedBaselineConstraints: ""   # created from baseline job
+    BaselineDataset: s3://tdsp-data-products-dev/tdspds/tdspds-mlops-sagemaker-batch-inference-sample/churn-project/data/input/test_data_no_headers_with_target_small.csv
+    OutputS3Uri: s3://tdsp-data-products-dev/tdspds/tdspds-mlops-sagemaker-batch-inference-sample/churn-project/data-quality
+  ModelQuality:
+    Name: churn-model-quality
+    Enable: True
+    InstanceType: ml.m4.xlarge
+    InstanceCount: 1
+    DatasetFormat: 'csv'
+    Headers: False
+    ProblemType: BinaryClassification
+    GroundTruthAttribute: 9
+    InferenceAttribute: 16
+    SkipCheck: True
+    RegisterNewBaseline: True
+    BaselineDataset: s3://tdsp-data-products-dev/tdspds/tdspds-mlops-sagemaker-batch-inference-sample/churn-project/data/output/test_data_v1.csv.out
+    SuppliedBaselineStatistics: ""      # statistics and json files
+    SuppliedBaselineConstraints: ""    # created from baseline job
+    OutputS3Uri: s3://tdsp-data-products-dev/tdspds/tdspds-mlops-sagemaker-batch-inference-sample/churn-project/model-quality
+  ModelBias:
+    Name: churn-model-bias
+    Enable: True
+    InstanceType: ml.m4.xlarge
+    InstanceCount: 1
+    SkipCheck: True
+    RegisterNewBaseline: True
+    SuppliedBaselineConstraints: ""
+    DataConfig:
+      S3DataInputPath: s3://tdsp-data-products-dev/tdspds/tdspds-mlops-sagemaker-batch-inference-sample/churn-project/data/input/test_data_v1.csv
+      BiasOutputPath: s3://tdsp-data-products-dev/tdspds/tdspds-mlops-sagemaker-batch-inference-sample/churn-project/bias-drift/output
+      ModelBiasAnalysisCfgOutputPath: s3://tdsp-data-products-dev/tdspds/tdspds-mlops-sagemaker-batch-inference-sample/churn-project/bias-drift/output
+      Label: 9
+      DatasetType: text/csv
+    BiasConfig:
+      LabelValuesOrThreshold: [0]
+      FacetName: [1, 2]
+      FacetValuesOrThreshold: [520, 40]
+
+Pipeline:
+  ExecuteOnCommit: True
